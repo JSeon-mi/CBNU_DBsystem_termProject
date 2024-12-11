@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ club[0] }} - 동아리 관리</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container mt-5">
+        <!-- 동아리 기본 정보 -->
+        <h1 class="text-center">{{ club[0] }}</h1>
+        <p>위치: {{ club[2] }}</p>
+        <p>지도 교수: {{ club[3] }}</p>
+        <p>설립일: {{ club[4] }}</p>
+        <hr>
+
+        <!-- 임원 정보 -->
+        <h3>임원 정보</h3>
+        <ul>
+            {% for executive in executives %}
+                <li>{{ executive[0] }}: {{ executive[3] }} ({{ executive[2] }})</li>
+            {% endfor %}
+        </ul>
+        <hr>
+
+        <!-- 버튼 그룹 -->
+        <div class="btn-group mb-4" role="group" aria-label="Basic button group">
+            <button type="button" class="btn btn-outline-primary" onclick="showContent('activities')">동아리 활동</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showContent('budget')">예산 상태</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showContent('records')">참여 기록</button>
+        </div>
+
+        <!-- 동적 콘텐츠 영역 -->
+        <div id="content-area" class="mt-4">
+            <p class="text-muted">위의 버튼을 클릭하여 정보를 확인하세요.</p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to dynamically update content
+        function showContent(category) {
+            const contentArea = document.getElementById('content-area');
+
+            if (category === 'activities') {
+                contentArea.innerHTML = `
+                    <h4>동아리 활동</h4>
+                    <ul>
+                        {% for activity in activities %}
+                            <li>{{ activity[0] }} - {{ activity[1] }} ({{ activity[2] }}, {{ activity[3] }})</li>
+                        {% endfor %}
+                    </ul>
+                `;
+            } else if (category === 'budget') {
+                contentArea.innerHTML = `
+                    <h4>예산 상태</h4>
+                    <ul>
+                        {% for budget in budgets %}
+                            <li>{{ budget[0] }}: {{ budget[2] }}원 ({{ budget[1] }})</li>
+                        {% endfor %}
+                    </ul>
+                `;
+            } else if (category === 'records') {
+                contentArea.innerHTML = `
+                    <h4>참여 기록</h4>
+                    <ul>
+                        {% for record in records %}
+                            <li>{{ record[0] }} - {{ record[1] }} ({{ record[2] }})</li>
+                        {% endfor %}
+                    </ul>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

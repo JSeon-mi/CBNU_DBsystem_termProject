@@ -1,0 +1,125 @@
+--테이블 생성 쿼리문--
+
+-- 동아리 테이블 --
+CREATE TABLE Club (
+    club_name VARCHAR(100) PRIMARY KEY,  -- 동아리명 (PK)
+    club_type VARCHAR(50),               -- 동아리 종류
+    club_location VARCHAR(100),          -- 위치
+    club_prof VARCHAR(100),              -- 지도 교수
+    estab_date DATE                      -- 설립일
+);
+
+-- 임원 테이블 --
+CREATE TABLE Executive (
+    position VARCHAR(50),                -- 직책
+    term_year YEAR,                      -- 임기 기간
+    club_name VARCHAR(100),              -- 동아리명 (FK)
+    student_id INT,                      -- 학번 (FK)
+    PRIMARY KEY (position, club_name),   -- 복합 PK (직책, 동아리명)
+    FOREIGN KEY (club_name) REFERENCES Club(club_name),
+    FOREIGN KEY (student_id) REFERENCES ClubMember(student_id)
+);
+
+-- 동아리원 테이블 --
+CREATE TABLE ClubMember (
+    student_id INT PRIMARY KEY,          -- 학번 (PK)
+    name VARCHAR(100),                   -- 이름
+    major VARCHAR(100),                  -- 학과
+    contact VARCHAR(50),                 -- 연락처
+    status VARCHAR(50),                  -- 상태
+    club_name VARCHAR(100),              -- 동아리명 (FK)
+    role VARCHAR(50),                    -- 직책
+    FOREIGN KEY (club_name) REFERENCES Club(club_name)
+);
+
+-- 예산 테이블 --
+CREATE TABLE Budget (
+    budget_id INT AUTO_INCREMENT PRIMARY KEY, -- 예산 고유 번호 (PK)
+    budget_name VARCHAR(100),                 -- 항목명
+    date DATE,                                -- 날짜
+    amount DECIMAL(10, 2),                    -- 금액
+    details TEXT,                             -- 수입/지출 내역
+    club_name VARCHAR(100),                   -- 동아리명 (FK)
+    manager_position VARCHAR(50),             -- 직책
+    FOREIGN KEY (club_name) REFERENCES Club(club_name),
+    FOREIGN KEY (manager_position) REFERENCES Executive(position)
+);
+
+-- 활동 테이블 --
+CREATE TABLE Activity (
+    activity_name VARCHAR(100),          -- 활동명 (PK)
+    date DATE,                           -- 날짜
+    activity_type VARCHAR(50),           -- 활동 종류
+    location VARCHAR(100),               -- 활동 장소
+    club_name VARCHAR(100),              -- 동아리명 (FK)
+    PRIMARY KEY (activity_name, club_name), -- 복합 PK (활동명, 동아리명)
+    FOREIGN KEY (club_name) REFERENCES Club(club_name)
+);
+
+-- 수상 경력 테이블 --
+CREATE TABLE Award(
+    award_name VARCHAR(100),             -- 대회명
+    prize VARCHAR(100),                  -- 등급
+    date DATE,                           -- 날짜
+    student_id INT,                      -- 학번 (FK)
+    club_name VARCHAR(100),              -- 동아리명 (FK)
+    PRIMARY KEY (award_name, student_id), -- 복합 PK (대회명, 학번)
+    FOREIGN KEY (student_id) REFERENCES ClubMember(student_id),
+    FOREIGN KEY (club_name) REFERENCES Club(club_name)
+);
+
+-- 활동 참여 학생 테이블 --
+CREATE TABLE ActivityParticipant(
+    activity_name VARCHAR(100),          -- 활동명 (FK)
+    student_id INT,                      -- 학번 (FK)
+    participation_date DATE,             -- 참여 날짜
+    PRIMARY KEY (activity_name, student_id), -- 복합 PK (활동명, 학번)
+    FOREIGN KEY (activity_name) REFERENCES Activity(activity_name),
+    FOREIGN KEY (student_id) REFERENCES ClubMember(student_id)
+);
+
+-- 수상 참여 학생 테이블 --
+CREATE TABLE AwardParticipant(
+    award_name VARCHAR(100),             -- 실적명 (FK)
+    student_id INT,                      -- 학번 (FK)
+    award_date DATE,                     -- 수상 날짜
+    PRIMARY KEY (award_name, student_id), -- 복합 PK (실적명, 학번)
+    FOREIGN KEY (award_name) REFERENCES Award(award_name),
+    FOREIGN KEY (student_id) REFERENCES ClubMember(student_id)
+);
+
+-- 동아리 협업 테이블 -- 
+CREATE TABLE ClubCollaboration(
+    club1_name VARCHAR(100),             -- 동아리명 1 (FK)
+    club2_name VARCHAR(100),             -- 동아리명 2 (FK)
+    PRIMARY KEY (club1_name, club2_name), -- 복합 PK
+    FOREIGN KEY (club1_name) REFERENCES Club(club_name),
+    FOREIGN KEY (club2_name) REFERENCES Club(club_name)
+);
+
+-- 레코드 추가 쿼리문 --
+Club     
+INSERT INTO Club (club_name, club_type, club_location, club_prof, estab_date) VALUES ('SAMMaru', 'academic', 'S4-1 113호', '아지즈 교수님', '2013' );
+
+Activity            
+INSERT INTO Activity (activity_name, date, activity_type, location, club_name) VALUES ('24-1 Tux 개강총회', '24/03/15', '개강총회', 'XX주점', 'Tux' );
+
+ActivityParticipant 
+INSERT INTO ActivityParticipant (activity_name, student_id, participation_date) VALUES ('24-1 Tux 개강총회', '2021041063', '24-03-15' );
+INSERT INTO ActivityParticipant (activity_name, student_id, participation_date) VALUES ('24-1 Tux 개강총회', '123456789', '24-03-15' );
+
+Award
+INSERT INTO Award (award_name, prize, date, student_id, club_name) VALUES ('24년도 프로그래밍 대회', '금상', '24-05-07',  '123456789', 'SAMMaru' );
+
+AwardParticipant
+INSERT INTO AwardParticipant (award_name, student_id, award_date) VALUES ('24년도 프로그래밍 대회', '123456789', '24-05-07' );
+
+ClubCollaboration  
+INSERT INTO ClubCollaboration (club1_name, club2_name) VALUES ('CUVIC',  'EMSYS' );
+
+ClubMember
+INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role) VALUES ('123456789', '홍길동', '소프트웨어학부', '010-1111-1111', '활동중', 'SAMMaru', '동아리원');
+INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role) VALUES (2021041063, '철수', '컴퓨터공학과', '010-1234-5678', '활동중', 'Tux', '동아리원');
+
+Executive
+INSERT INTO Executive (position, term_year, club_name, student_id) VALUES ('회장', '2024', 'SAMMaru', '123456789');
