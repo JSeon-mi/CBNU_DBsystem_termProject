@@ -120,5 +120,55 @@ def club(club_name):
         ac_participants=ac_participants
     )
 
+@app.route('/add_member', methods=['POST'])
+def add_member():
+    # 데이터 수집
+    student_id = request.form['student_id']
+    name = request.form['name']
+    major = request.form['major']
+    contact = request.form['contact']
+    status = request.form['status']
+    club_name = request.form['club_name']
+    role = request.form('role')
+
+    # 데이터베이스 연결
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 데이터 삽입
+    sql = """
+    INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    cur.execute(sql, (student_id, name, major, contact, status, club_name, role))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"동아리원이 성공적으로 추가되었습니다!"})
+
+@app.route('/delete_member', methods=['POST'])
+def delete_member():
+    try:
+        student_id = request.json.get('student_id')
+        if not student_id:
+            return jsonify({"message": "student_id가 전달되지 않았습니다!"}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "DB 연결 실패!"}), 500
+
+        cur = conn.cursor()
+        sql = "DELETE FROM ClubMember WHERE student_id = %s"
+        cur.execute(sql, (student_id,))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        return jsonify({"message": "동아리원이 성공적으로 삭제되었습니다!"})
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
