@@ -4,10 +4,36 @@
     <title>{{ club[0] }} - 동아리 관리</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script>
+        function toggleVisibility(showId) {
+            const contentIds = ['member-list', 'activity-list', 'budget-list', 'record-list', 'activity-participation-list', 'activity-form', 'award-list', 'member-form', 'budget-form', 'record-form', 'award-form', 'activity-participation-form'];
+            contentIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    if (id === showId) {
+                        element.style.display = 'block';
+                    } else {
+                        element.style.display = 'none';
+                    }
+                }
+            });
+        }            
+        
+        function showRecordPage() {
+            toggleVisibility('record-list'); // 'record-list'를 보여줌
+        }
+        
+        function goBack() {
+            window.location.href = '/'; // index.html 경로로 이동
+        }
+    </script>
 </head>
 <body>
+    <div class="container mt-4">
+        <button class="btn btn-secondary" onclick="goBack()">뒤로가기</button>
+    </div>
     <div class="container mt-5">
         <!-- 동아리 기본 정보 -->
         <h1 class="text-center">{{ club[0] }}</h1>
@@ -16,7 +42,6 @@
         <p>설립일: {{ club[4] }}</p>
         <hr>
 
-        <!-- 임원 정보 -->
         <h3>임원 정보</h3>
         <ul>
             {% for executive in executives %}
@@ -24,54 +49,495 @@
             {% endfor %}
         </ul>
         <hr>
-
-        <!-- 버튼 그룹 -->
-        <div class="btn-group mb-4" role="group" aria-label="Basic button group">
-            <button type="button" class="btn btn-outline-primary" onclick="showContent('activities')">동아리 활동</button>
-            <button type="button" class="btn btn-outline-primary" onclick="showContent('budget')">예산 상태</button>
-            <button type="button" class="btn btn-outline-primary" onclick="showContent('records')">참여 기록</button>
+            
+        <div class="btn-group mb-4" role="group" aria-label="Navigation">
+            <button class="btn btn-outline-primary" onclick="toggleVisibility('member-list')">동아리원</button>
+            <button class="btn btn-outline-primary" onclick="toggleVisibility('activity-list')">동아리 활동</button>
+            <button class="btn btn-outline-primary" onclick="toggleVisibility('award-list')">수상 이력</button>
+            <button class="btn btn-outline-primary" onclick="toggleVisibility('budget-list')">예산 상태</button>
         </div>
 
-        <!-- 동적 콘텐츠 영역 -->
-        <div id="content-area" class="mt-4">
-            <p class="text-muted">위의 버튼을 클릭하여 정보를 확인하세요.</p>
+        <!-- 동아리원 목록 -->
+        <div id="member-list" style="display: block;">
+            <h4>동아리원</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>이름</th>
+                        <th>학번</th>
+                        <th>학과</th>
+                        <th>연락처</th>
+                        <th>상태</th>
+                        <th>직책</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ member[1] }}</td>
+                        <td>{{ member[0] }}</td>
+                        <td>{{ member[2] }}</td>
+                        <td>{{ member[3] }}</td>
+                        <td>{{ member[4] }}</td>
+                        <td>{{ member[5] }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMember('{{ member[0] }}')">삭제</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-primary btn-sm" onclick="toggleVisibility('member-form')">동아리원 추가</button>
+        </div>
+
+        <!-- 동아리 활동 목록 -->
+        <div id="activity-list" style="display: none;">
+            <h4>동아리 활동</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>활동명</th>
+                        <th>날짜</th>
+                        <th>활동 종류</th>
+                        <th>장소</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if activities %}
+                        {% for activity in activities %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ activity[0] }}</td>
+                            <td>{{ activity[1] }}</td>
+                            <td>{{ activity[2] }}</td>
+                            <td>{{ activity[3] }}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteActivity('{{ activity[0] }}')">삭제</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">등록된 활동이 없습니다.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <button class="btn btn-primary btn-sm" onclick="showRecordPage()">참여 기록</button>
+            <button class="btn btn-primary btn-sm" onclick="toggleVisibility('activity-form')">활동 추가</button>
+        </div>
+
+        <!-- 참여 기록 -->
+        <div id="record-list" style="display: none;">
+            <h4>참여 기록</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>활동명</th>
+                        <th>참여자명</th>
+                        <th>날짜</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ record[1] }}</td>
+                        <td>{{ record[0] }}</td>
+                        <td>{{ record[2] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-primary btn-sm" onclick="toggleVisibility('activity-participation-form')">참여 인원 추가</button>
+        </div>
+
+        <!-- 수상 이력 -->
+        <div id="award-list" style="display: none;">
+            <h4>수상 이력</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>대회명</th>
+                        <th>등급</th>
+                        <th>이름</th>
+                        <th>날짜</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for award in awards %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ award[0] }}</td>
+                        <td>{{ award[1] }}</td>
+                        <td>{{ award[3] }}</td> <!-- 이름 표시 -->
+                        <td>{{ award[2] }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAward('{{ award[0] }}', '{{ award[3] }}')">삭제</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-primary btn-sm" onclick="toggleVisibility('award-form')">수상 이력 추가</button>
+        </div>
+
+        <!-- 예산 상태 -->
+        <div id="budget-list" style="display: none;">
+            <h4>예산 내역</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>예산명</th>
+                        <th>금액</th>
+                        <th>수입/지출내역</th>
+                        <th>날짜</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for budget in budgets %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ budget[0] }}</td>
+                        <td>{{ budget[2] }}원 </td>
+                        <td>{{ budget[3] }}</td>
+                        <td>{{ budget[1] }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBudget('{{ budget[0] }}')">삭제</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-primary btn-sm" onclick="toggleVisibility('budget-form')">예산 이력 추가</button>
+        </div>
+
+        <!-- 동아리원 추가 양식 -->
+        <div id="member-form" style="display: none;">
+            <h3>동아리원 추가</h3>
+            <form action="/add_member" method="post">
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="text" class="form-control" id="student_id" name="student_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="name" class="form-label">이름</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="major" class="form-label">학과</label>
+                    <input type="text" class="form-control" id="major" name="major" required>
+                </div>
+                <div class="mb-3">
+                    <label for="contact" class="form-label">연락처</label>
+                    <input type="text" class="form-control" id="contact" name="contact" required>
+                </div>
+                <div class="mb-3">
+                    <label for="status" class="form-label">상태</label>
+                    <select class="form-select" id="status" name="status" required>
+                        <option value="활동중">활동중</option>
+                        <option value="휴학중">휴학중</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="club_name" class="form-label">동아리명</label>
+                    <select class="form-select" id="club_name" name="club_name" required>
+                        <option value="CUVIC">CUVIC</option>
+                        <option value="EMSYS">EMSYS</option>
+                        <option value="Nest.net">Nest.net</option>
+                        <option value="Nova">Nova</option>
+                        <option value="PDA">PDA</option>
+                        <option value="SAMMaru">SAMMaru</option>
+                        <option value="Tux">Tux</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="club_role" class="form-label">직책</label>
+                    <select class="form-select" id="role" name="role" required>
+                        <option value="동아리원">동아리원</option>
+                        <option value="임원">임원</option>
+                        <option value="부회장">부회장</option>
+                        <option value="회장">회장</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('member-list')">취소</button>
+            </form>
+        </div>
+
+        <!-- 동아리 활동 추가 -->
+        <div id="activity-form" style="display: none;">
+            <h3>동아리 활동 추가</h3>
+            <form action="/add_activity" method="post">
+                <div class="mb-3">
+                    <label for="activity_name" class="form-label">활동명</label>
+                    <input type="text" class="form-control" id="activity_name" name="activity_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="activity_type" class="form-label">활동 종류</label>
+                    <input type="text" class="form-control" id="activity_type" name="activity_type" required>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">활동 장소</label>
+                    <input type="text" class="form-control" id="location" name="location" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('activity-list')">취소</button>
+            </form>
+        </div>
+
+        <!-- 활동 참여자 추가 -->
+        <div id="activity-participation-form" style="display: none;">
+            <h3>활동 참여자 추가</h3>
+            <form action="/add_ac_participation" method="post">
+                <div class="mb-3">
+                    <label for="activity_name" class="form-label">활동명</label>
+                    <input type="text" class="form-control" id="activity_name" name="activity_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="text" class="form-control" id="student_id" name="student_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="ac_participation_date" class="form-label">참여 날짜</label>
+                    <input type="date" class="form-control" id="ac_participation_date" name="ac_participation_date" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">  <!-- club_name 전달 -->
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('activity-list')">취소</button>
+            </form>
+        </div>
+
+        
+        
+        <!-- 수상 이력 -->
+        <div id="award-form" style="display: none;">
+            <h3>수상 이력 추가</h3>
+            <form action="/add_award" method="post">
+                <div class="mb-3">
+                    <label for="award_name" class="form-label">수상명</label>
+                    <input type="text" class="form-control" id="award_name" name="award_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="prize" class="form-label">등급</label>
+                    <input type="text" class="form-control" id="prize" name="prize" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="number" class="form-control" id="student_id" name="student_id" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('award-list')">취소</button>
+            </form>
+        </div>
+
+        <!-- 예산 내역 추가 -->
+        <div id="budget-form" style="display: none;">
+            <h3>예산 내역 추가</h3>
+            <form action="/add_budget" method="post">
+                <div class="mb-3">
+                    <label for="budget_name" class="form-label">항목명</label>
+                    <input type="text" class="form-control" id="budget_name" name="budget_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="amount" class="form-label">금액</label>
+                    <input type="number" class="form-control" id="amount" name="amount" required>
+                </div>
+                <div class="mb-3">
+                    <label for="details" class="form-label">수입/지출 내역</label>
+                    <input type="text" class="form-control" id="details" name="details" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <input type="hidden" name="manager_position" value="{{ manager_position }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('budget-list')">취소</button>
+            </form>
         </div>
     </div>
-
     <script>
-        // JavaScript to dynamically update content
-        function showContent(category) {
-            const contentArea = document.getElementById('content-area');
-
-            if (category === 'activities') {
-                contentArea.innerHTML = `
-                    <h4>동아리 활동</h4>
-                    <ul>
-                        {% for activity in activities %}
-                            <li>{{ activity[0] }} - {{ activity[1] }} ({{ activity[2] }}, {{ activity[3] }})</li>
-                        {% endfor %}
-                    </ul>
-                `;
-            } else if (category === 'budget') {
-                contentArea.innerHTML = `
-                    <h4>예산 상태</h4>
-                    <ul>
-                        {% for budget in budgets %}
-                            <li>{{ budget[0] }}: {{ budget[2] }}원 ({{ budget[1] }})</li>
-                        {% endfor %}
-                    </ul>
-                `;
-            } else if (category === 'records') {
-                contentArea.innerHTML = `
-                    <h4>참여 기록</h4>
-                    <ul>
-                        {% for record in records %}
-                            <li>{{ record[0] }} - {{ record[1] }} ({{ record[2] }})</li>
-                        {% endfor %}
-                    </ul>
-                `;
+        function deleteMember(studentId) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_member', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ student_id: studentId }), // student_id 전달
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
             }
         }
+        
+        
+        function refreshMemberList() {
+            fetch(`/refresh_members/{{ club[0] }}`)
+                .then(response => response.json())
+                .then(members => {
+                    const memberList = document.querySelector('#member-list ul');
+                    memberList.innerHTML = ''; // 기존 목록 지우기
+                    members.forEach(member => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.innerHTML = `
+                            ${member.name} (${member.student_id}) - ${member.major}
+                            <button class="btn btn-danger btn-sm" onclick="deleteMember('${member.student_id}')">삭제</button>
+                        `;
+                        memberList.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function deleteActivity(activityName) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_activity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ activity_name: activityName }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteAword(awardName) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_award', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ award_name: awardName }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteRecord(recordPname) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_activity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ record_pname: recordPname }), 
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteACparti(activityName, studentId, participationDate) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_ac_participation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({
+                        activity_name: activityName,
+                        student_id: studentId,
+                        participation_date: participationDate
+                    }), 
+                })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);  // 성공 메시지 출력
+                    if (data.message.includes("삭제되었습니다")) {
+                        location.reload();  // 성공 시 목록 갱신
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+            
+        
     </script>
+    
 </body>
 </html>

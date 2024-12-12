@@ -12,7 +12,7 @@ CREATE TABLE Club (
 -- 임원 테이블 --
 CREATE TABLE Executive (
     position VARCHAR(50),                -- 직책
-    term_year YEAR,                      -- 임기 기간
+    term_year YEAR,                      -- 임기 년도
     club_name VARCHAR(100),              -- 동아리명 (FK)
     student_id INT,                      -- 학번 (FK)
     PRIMARY KEY (position, club_name),   -- 복합 PK (직책, 동아리명)
@@ -56,7 +56,7 @@ CREATE TABLE Activity (
     FOREIGN KEY (club_name) REFERENCES Club(club_name)
 );
 
--- 수상 경력 테이블 --
+-- 수상 이력 테이블 --
 CREATE TABLE Award(
     award_name VARCHAR(100),             -- 대회명
     prize VARCHAR(100),                  -- 등급
@@ -120,6 +120,7 @@ INSERT INTO ClubCollaboration (club1_name, club2_name) VALUES ('CUVIC',  'EMSYS'
 ClubMember
 INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role) VALUES ('123456789', '홍길동', '소프트웨어학부', '010-1111-1111', '활동중', 'SAMMaru', '동아리원');
 INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role) VALUES (2021041063, '철수', '컴퓨터공학과', '010-1234-5678', '활동중', 'Tux', '동아리원');
+INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role) VALUES (2021041099, '이준호', '소프트웨어학부', '010-1234-5678', '활동중', 'Tux', '동아리원');
 
 Executive
 INSERT INTO Executive (position, term_year, club_name, student_id) VALUES ('회장', '2024', 'SAMMaru', '123456789');
