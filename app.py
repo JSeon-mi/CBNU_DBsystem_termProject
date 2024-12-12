@@ -169,6 +169,114 @@ def delete_member():
     except Exception as e:
         return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
+@app.route('/add_activity', methods=['POST'])
+def add_activity():
+    try:     
+        
+        activity_name = request.form['activity_name']
+        date = request.form['date']
+        activity_type = request.form['activity_type']
+        location = request.form['location']
+        club_name = request.form['club_name']
+
+        if not all([activity_name, date, activity_type, location, club_name]):
+            return jsonify({"message": "필수 항목이 누락되었습니다!"}), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        sql_check = "SELECT COUNT(*) FROM Activity WHERE activity_name = %s AND club_name = %s"
+        cur.execute(sql_check, (activity_name, club_name))
+        if cur.fetchone()[0] > 0:
+            return jsonify({"message": "이미 존재하는 활동입니다!"}), 400
+
+        sql = """
+        INSERT INTO Activity (activity_name, date, activity_type, location, club_name)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        cur.execute(sql, (activity_name, date, activity_type, location, club_name))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        return jsonify({"message": "활동이 성공적으로 추가되었습니다!"}), 200
+
+    except pymysql.MySQLError as e:
+        conn.rollback()  # 트랜잭션 롤백
+        return jsonify({"message": f"데이터베이스 오류 발생: {str(e)}"}), 500
+
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
+
+@app.route('/add_budget', methods=['POST'])
+def add_budget():
+    try:
+        budget_name = request.form['budget_name']
+        budget_date = request.form['date']
+        amount = request.form['amount']
+        details = request.form['details']
+        club_name = request.form['club_name']
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        sql = """
+        INSERT INTO Budget (budget_name, date, amount, details, club_name)
+        VALUES (%s, %s, %s, %s, %s)
+        """
+        cur.execute(sql, (budget_name, budget_date, amount, details, club_name))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return redirect(url_for('club', club_name=club_name))
+
+    except pymysql.MySQLError as e:
+        conn.rollback() 
+        return jsonify({"message": f"데이터베이스 오류 발생: {str(e)}"}), 500
+
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
+
+@app.route('/add_ac_participation', methods=['POST'])
+def add_ac_participation():
+    try:
+        # 요청 데이터 수집
+        activity_name = request.form['activity_name']
+        student_id = request.form['student_id']
+        participation_date = request.form['ac_participation_date']  # 수정된 필드 이름
+        club_name = request.form['club_name']
+
+        # 데이터베이스 연결
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # ActivityParticipant 테이블에 데이터 삽입
+        sql = """
+        INSERT INTO ActivityParticipant (activity_name, student_id, participation_date)
+        VALUES (%s, %s, %s)
+        """
+        cur.execute(sql, (activity_name, student_id, participation_date))
+        conn.commit()
+
+        # 연결 종료
+        cur.close()
+        conn.close()
+
+        # 클럽 세부 페이지로 리다이렉트
+        return redirect(url_for('club', club_name=club_name))
+
+    except pymysql.MySQLError as e:
+        # 데이터베이스 오류 처리
+        conn.rollback()  # 트랜잭션 롤백
+        return jsonify({"message": f"데이터베이스 오류 발생: {str(e)}"}), 500
+
+    except Exception as e:
+        # 일반적인 오류 처리
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
