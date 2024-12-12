@@ -275,6 +275,109 @@
             </form>
         </div>
 
+        <!-- 동아리 활동 추가 -->
+        <div id="activity-form" style="display: none;">
+            <h3>동아리 활동 추가</h3>
+            <form action="/add_activity" method="post">
+                <div class="mb-3">
+                    <label for="activity_name" class="form-label">활동명</label>
+                    <input type="text" class="form-control" id="activity_name" name="activity_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="activity_type" class="form-label">활동 종류</label>
+                    <input type="text" class="form-control" id="activity_type" name="activity_type" required>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">활동 장소</label>
+                    <input type="text" class="form-control" id="location" name="location" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('activity-list')">취소</button>
+            </form>
+        </div>
+
+        <!-- 활동 참여자 추가 -->
+        <div id="activity-participation-form" style="display: none;">
+            <h3>활동 참여자 추가</h3>
+            <form action="/add_ac_participation" method="post">
+                <div class="mb-3">
+                    <label for="activity_name" class="form-label">활동명</label>
+                    <input type="text" class="form-control" id="activity_name" name="activity_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="text" class="form-control" id="student_id" name="student_id" required>
+                </div>
+                <div class="mb-3">
+                    <label for="ac_participation_date" class="form-label">참여 날짜</label>
+                    <input type="date" class="form-control" id="ac_participation_date" name="ac_participation_date" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">  <!-- club_name 전달 -->
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('activity-list')">취소</button>
+            </form>
+        </div>
+
+        
+        
+        <!-- 수상 이력 -->
+        <div id="award-form" style="display: none;">
+            <h3>수상 이력 추가</h3>
+            <form action="/add_award" method="post">
+                <div class="mb-3">
+                    <label for="award_name" class="form-label">수상명</label>
+                    <input type="text" class="form-control" id="award_name" name="award_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="prize" class="form-label">등급</label>
+                    <input type="text" class="form-control" id="prize" name="prize" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="student_id" class="form-label">학번</label>
+                    <input type="number" class="form-control" id="student_id" name="student_id" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('award-list')">취소</button>
+            </form>
+        </div>
+
+        <!-- 예산 내역 추가 -->
+        <div id="budget-form" style="display: none;">
+            <h3>예산 내역 추가</h3>
+            <form action="/add_budget" method="post">
+                <div class="mb-3">
+                    <label for="budget_name" class="form-label">항목명</label>
+                    <input type="text" class="form-control" id="budget_name" name="budget_name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">날짜</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="amount" class="form-label">금액</label>
+                    <input type="number" class="form-control" id="amount" name="amount" required>
+                </div>
+                <div class="mb-3">
+                    <label for="details" class="form-label">수입/지출 내역</label>
+                    <input type="text" class="form-control" id="details" name="details" required>
+                </div>
+                <input type="hidden" name="club_name" value="{{ club_name }}">
+                <input type="hidden" name="manager_position" value="{{ manager_position }}">
+                <button type="submit" class="btn btn-success">완료</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleVisibility('budget-list')">취소</button>
+            </form>
+        </div>
+    </div>
     <script>
         function deleteMember(studentId) {
             if (confirm("정말로 삭제하시겠습니까?")) {
@@ -323,6 +426,116 @@
                 .catch(error => console.error('Error:', error));
         }
 
+        function deleteActivity(activityName) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_activity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ activity_name: activityName }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteAword(awardName) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_award', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ award_name: awardName }),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteRecord(recordPname) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_activity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({ record_pname: recordPname }), 
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // JSON 응답을 확인하고 에러 메시지 처리
+                        return response.json().then(error => { throw new Error(error.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    location.reload(); // 성공 시 목록 갱신
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+
+        function deleteACparti(activityName, studentId, participationDate) {
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                fetch('/delete_ac_participation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSON 데이터 전송
+                    },
+                    body: JSON.stringify({
+                        activity_name: activityName,
+                        student_id: studentId,
+                        participation_date: participationDate
+                    }), 
+                })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);  // 성공 메시지 출력
+                    if (data.message.includes("삭제되었습니다")) {
+                        location.reload();  // 성공 시 목록 갱신
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(`삭제 실패: ${error.message}`);
+                });
+            }
+        }
+            
         
     </script>
     

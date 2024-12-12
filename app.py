@@ -209,6 +209,34 @@ def add_activity():
         return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
 
+
+@app.route('/delete_activity', methods=['POST'])
+def delete_activity():
+    try:
+        activity_name = request.json.get('activity_name')
+        if not activity_name:
+            return jsonify({"message": "activity_name가 전달되지 않았습니다!"}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "DB 연결 실패!"}), 500
+
+        cur = conn.cursor()
+
+        # 참여 인원 데이터 먼저 삭제
+        sql_del_participant = "DELETE FROM ActivityParticipant  WHERE activity_name = %s"
+        cur.execute(sql_del_participant, (activity_name,))
+        # 이후 행사 데이터 삭제
+        sql_del_activity = "DELETE FROM Activity WHERE activity_name = %s"
+        cur.execute(sql_del_activity, (activity_name,))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        return jsonify({"message": "동아리 활동이 성공적으로 삭제되었습니다!"})
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
 @app.route('/add_budget', methods=['POST'])
 def add_budget():
     try:
@@ -240,6 +268,67 @@ def add_budget():
     except Exception as e:
         return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
+@app.route('/delete_budget', methods=['POST'])
+def delete_budget():
+    try:
+        # 요청 데이터 수집
+        budget_name = request.json.get('budget_name')
+        date = request.json.get('date')
+        
+        # 필수 데이터 확인
+        if not budget_name or not date:
+            return jsonify({"message": "budget_name과 date가 모두 전달되어야 합니다!"}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "DB 연결 실패!"}), 500
+
+        cur = conn.cursor()
+
+        # 예산과 관련된 데이터 먼저 삭제 (예: 예산 사용 내역)
+        sql_del_budget_details = "DELETE FROM BudgetDetails WHERE budget_name = %s AND date = %s"
+        cur.execute(sql_del_budget_details, (budget_name, date))
+
+        # 이후 예산 내역 삭제
+        sql_del_budget = "DELETE FROM Budget WHERE budget_name = %s AND date = %s"
+        cur.execute(sql_del_budget, (budget_name, date))
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "예산 내역이 성공적으로 삭제되었습니다!"})
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
+
+@app.route('/delete_award', methods=['POST'])
+def delete_award():
+    try:
+        award_name = request.json.get('award_name')
+        if not award_name:
+            return jsonify({"message": "award_name가 전달되지 않았습니다!"}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({"message": "DB 연결 실패!"}), 500
+
+        cur = conn.cursor()
+
+        # 대회 참여 인원 데이터 먼저 삭제
+        sql_del_participant = "DELETE FROM AwardParticipant WHERE award_name = %s"
+        cur.execute(sql_del_participant, (award_name,))
+        # 이후 대회 데이터 삭제
+        sql_del_award = "DELETE FROM Award WHERE award_name = %s"
+        cur.execute(sql_del_award, (award_name,))
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        return jsonify({"message": "동아리 활동이 성공적으로 삭제되었습니다!"})
+    except Exception as e:
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
 @app.route('/add_ac_participation', methods=['POST'])
 def add_ac_participation():
@@ -277,6 +366,55 @@ def add_ac_participation():
     except Exception as e:
         # 일반적인 오류 처리
         return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
+@app.route('/delete_ac_participation', methods=['POST'])
+def delete_ac_participation():
+    try:
+        # 요청 데이터 수집
+        activity_name = request.json.get('activity_name')
+        student_id = request.json.get('student_id')
+        participation_date = request.json.get('participation_date')
+
+        # 필수 데이터 확인
+        if not activity_name or not student_id or not participation_date:
+            return jsonify({"message": "activity_name, student_id, participation_date가 모두 전달되어야 합니다!"}), 400
+
+        # 데이터베이스 연결
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # ActivityParticipant 테이블에서 해당 참여자 삭제
+        sql = """
+        DELETE FROM ActivityParticipant
+        WHERE activity_name = %s AND student_id = %s AND participation_date = %s
+        """
+        cur.execute(sql, (activity_name, student_id, participation_date))
+        conn.commit()  # 트랜잭션 커밋
+
+        # 삭제 후 해당 참여 기록이 존재하는지 확인 (삭제 확인용)
+        cur.execute("""
+        SELECT * FROM ActivityParticipant WHERE activity_name = %s AND student_id = %s AND participation_date = %s
+        """, (activity_name, student_id, participation_date))
+        
+        deleted_record = cur.fetchone()
+        if deleted_record:
+            return jsonify({"message": "삭제 실패, 데이터가 여전히 존재합니다."}), 500
+
+        # 연결 종료
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "활동 참여자가 성공적으로 삭제되었습니다!"})
+
+    except pymysql.MySQLError as e:
+        # 데이터베이스 오류 처리
+        conn.rollback()  # 트랜잭션 롤백
+        return jsonify({"message": f"데이터베이스 오류 발생: {str(e)}"}), 500
+
+    except Exception as e:
+        # 일반적인 오류 처리
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)
