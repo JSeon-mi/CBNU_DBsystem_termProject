@@ -270,6 +270,10 @@
                         <option value="회장">회장</option>
                     </select>
                 </div>
+                <div class="mb-3" id="term_year_field" style="display: none;">
+                    <label for="term_year" class="form-label">임기 연도</label>
+                    <input type="number" class="form-control" id="term_year" name="term_year" placeholder="YYYY">
+                </div>
                 <button type="submit" class="btn btn-success">완료</button>
                 <button type="button" class="btn btn-secondary" onclick="toggleVisibility('member-list')">취소</button>
             </form>
@@ -536,7 +540,15 @@
             }
         }
             
-        
+            document.getElementById('role').addEventListener('change', function () {
+                const role = this.value;
+                const termYearField = document.getElementById('term_year_field');
+                if (['임원', '부회장', '회장'].includes(role)) {
+                    termYearField.style.display = 'block';
+                } else {
+                    termYearField.style.display = 'none';
+                }
+            });
     </script>
     
 </body>

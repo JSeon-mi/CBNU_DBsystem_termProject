@@ -122,30 +122,56 @@ def club(club_name):
 
 @app.route('/add_member', methods=['POST'])
 def add_member():
-    # 데이터 수집
-    student_id = request.form['student_id']
-    name = request.form['name']
-    major = request.form['major']
-    contact = request.form['contact']
-    status = request.form['status']
-    club_name = request.form['club_name']
-    role = request.form('role')
+    try:
+        # 데이터 수집
+        student_id = request.form['student_id']
+        name = request.form['name']
+        major = request.form['major']
+        contact = request.form['contact']
+        status = request.form['status']
+        club_name = request.form['club_name']
+        role = request.form['role']  # 직책 정보 추가
+        term_year = request.form.get('term_year')  # 임원 임기를 선택적으로 수집 (없으면 None)
 
-    # 데이터베이스 연결
-    conn = get_db_connection()
-    cur = conn.cursor()
+        # 데이터베이스 연결
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    # 데이터 삽입
-    sql = """
-    INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """
-    cur.execute(sql, (student_id, name, major, contact, status, club_name, role))
-    conn.commit()
-    cur.close()
-    conn.close()
+        # ClubMember 테이블에 데이터 삽입
+        sql_insert_member = """
+        INSERT INTO ClubMember (student_id, name, major, contact, status, club_name, role)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cur.execute(sql_insert_member, (student_id, name, major, contact, status, club_name, role))
 
-    return jsonify({"동아리원이 성공적으로 추가되었습니다!"})
+        # 만약 직책이 '회장', '부회장', '임원'이라면 Executive 테이블에 추가
+        if role in ['회장', '부회장', '임원']:
+            if not term_year:  # 임기 연도가 누락된 경우 기본값 설정 (현재 연도)
+                from datetime import datetime
+                term_year = datetime.now().year
+
+            sql_insert_executive = """
+            INSERT INTO Executive (position, term_year, student_id, club_name)
+            VALUES (%s, %s, %s, %s)
+            """
+            cur.execute(sql_insert_executive, (role, term_year, student_id, club_name))
+
+        # 변경 사항 커밋 및 연결 종료
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # 동아리 상세 페이지로 리다이렉트
+        return redirect(url_for('club', club_name=club_name))
+
+    except pymysql.MySQLError as e:
+        # 데이터베이스 오류 처리
+        conn.rollback()  # 트랜잭션 롤백
+        return jsonify({"message": f"데이터베이스 오류 발생: {str(e)}"}), 500
+
+    except Exception as e:
+        # 일반적인 오류 처리
+        return jsonify({"message": f"오류 발생: {str(e)}"}), 500
 
 @app.route('/delete_member', methods=['POST'])
 def delete_member():
